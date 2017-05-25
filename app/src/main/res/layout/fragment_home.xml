@@ -7,7 +7,11 @@
         layout="@layout/partial_action_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
-
+    <com.feicuiedu.eshop_20170518.view.BannarView
+        android:id="@+id/layout_banner"
+        android:layout_width="match_parent"
+        android:layout_height="180dp">
+    </com.feicuiedu.eshop_20170518.view.BannarView>
 
     <!--第三方控件：刷新加载的控件-->
     <!--
@@ -16,13 +20,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 -->
-        <ListView
+  <!--      <ListView
             android:id="@+id/list_home_goods"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:divider="@null"
             android:dividerHeight="@dimen/spacing_small"
-            android:scrollbars="none"/>
+            android:scrollbars="none"/>-->
 
     <!--</in.srain.cube.views.ptr.PtrFrameLayout>-->
 
