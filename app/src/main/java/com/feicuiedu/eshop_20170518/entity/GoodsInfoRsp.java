@@ -4,17 +4,14 @@ import com.feicuiedu.eshop_20170518.manger.base.ResponseEntity;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Created by 张志龙 on 2017/5/22.
+ * Created by 张志龙 on 2017/5/31.
  */
 
-public class GoodsInfoRes extends ResponseEntity{
-
-
+public class GoodsInfoRsp extends ResponseEntity{
     @SerializedName("data")
-    private GoodsInfo mGoodsInfo;
+    private GoodsInfo mData;
 
-
-    public GoodsInfo getGoodsInfo() {
-        return mGoodsInfo;
+    public GoodsInfo getData() {
+        return mData;
     }
 }

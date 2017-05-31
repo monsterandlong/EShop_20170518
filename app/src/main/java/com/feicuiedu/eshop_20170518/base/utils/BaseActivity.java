@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 
+import com.feicuiedu.eshop_20170518.manger.InIntent;
+
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
@@ -30,6 +32,7 @@ public abstract class BaseActivity extends TramActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        InIntent.getInstance().cancelByTag(getClass().getSimpleName());
         unbinder.unbind();
         unbinder=null;
     }

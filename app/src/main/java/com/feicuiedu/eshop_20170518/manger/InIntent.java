@@ -1,15 +1,15 @@
 package com.feicuiedu.eshop_20170518.manger;
 
-import android.util.Log;
-
-import com.feicuiedu.eshop_20170518.entity.GoodsInfoReq;
+import com.feicuiedu.eshop_20170518.entity.SearchReq;
+import com.feicuiedu.eshop_20170518.manger.base.ApiInterface;
+import com.feicuiedu.eshop_20170518.manger.base.ApiPath;
+import com.feicuiedu.eshop_20170518.manger.base.ResponseEntity;
+import com.feicuiedu.eshop_20170518.manger.base.UICallback;
 import com.google.gson.Gson;
 
 import java.io.IOException;
-import java.util.List;
 
 import okhttp3.Call;
-import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -26,7 +26,10 @@ public class InIntent {
     private static final String BASE_URL = "http://106.14.32.204/eshop/emobile/?url=";
     private OkHttpClient okHttpClient;
     private static InIntent mInIntent;
+    private final Gson mGson;
+
     private InIntent(){
+        mGson = new Gson();
         HttpLoggingInterceptor interceptor=new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         okHttpClient = new OkHttpClient.Builder()
@@ -51,107 +54,82 @@ public class InIntent {
     public Call getHomeBanner(){
         Request request=new Request.Builder()
                 .get()
-                .url(BASE_URL+"/home/data")
+                .url(BASE_URL+ ApiPath.HOME_DATA)
                 .build();
         return okHttpClient.newCall(request);
     }
     public Call getHomeCategory(){
         Request request=new Request.Builder()
                 .get()
-                .url(BASE_URL+"/home/category")
+                .url(BASE_URL+ApiPath.HOME_CATEGORY)
                 .build();
         return okHttpClient.newCall(request);
     }
-    
-
-
-    /*******************************************************************/
-
-    public  void InImg(){
-
-        //构建请求
-        final Request request=new Request.Builder()
-                //请求方式
-                .get()
-                .url("http://106.14.32.204/eshop/emobile/?url=/category")
-                .addHeader("abc","123")
-                .addHeader("123","123")
-                .tag(getClass().getSimpleName())
-                .build();
-//        //同步执行
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                try {
-//                    Response response=okHttpClient.newCall(request).execute();
-//                    response.code();
-//                    response.body();
-//                    response.header("123");
-//                    Headers headers=response.headers();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        });
-        //异步回调
-        Call call= okHttpClient.newCall(request);
-        call.enqueue(new Callback() {
-            //请求失败
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.e("tag","请求失败");
-            }
-            //请求成功
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-             response.body();
-             response.code();
-                //看是否真的成功
-                if (response.isSuccessful()){
-                    String s=response.body().string();
-                    Log.e("tag","tag="+s);
-                }
-            }
-        });
-        //等待执行
-        List<Call> calls= okHttpClient.dispatcher().queuedCalls();
-        //正在执行
-        List<Call> callsl= okHttpClient.dispatcher().runningCalls();
-    }
-    protected void onDestroy() {
-//        super.onDestroy();
-        List<Call> calls = okHttpClient.dispatcher().queuedCalls();
-        for (Call call :
-                calls) {
-//            call.cancel();// 全部取消
-            if (call.request().tag()==getClass().getSimpleName()){
-                call.cancel();
-            }
-        }
-
-        List<Call> calllist = okHttpClient.dispatcher().runningCalls();
-        for (Call call :
-                calllist) {
-//            call.cancel();// 全部取消
-            if (call.request().tag()==getClass().getSimpleName()){
-                call.cancel();
-            }
-        }
-    }
-
-    //上传
-    public Call getInfo(){
-        GoodsInfoReq goodsInfoReq=new GoodsInfoReq();
-        goodsInfoReq.setmGoodsId(78);
-        String json=new Gson().toJson(goodsInfoReq);
-        //请求体的构建
+    //具体的实体类
+    public Call getSearch(SearchReq searchReq){
+        String json=new Gson().toJson(searchReq);
         RequestBody requestBody=new FormBody.Builder()
                 .add("json",json)
                 .build();
         Request request=new Request.Builder()
                 .post(requestBody)
-                .url("http://106.14.32.204/eshop/emobile/?url=/goods")
+                .url(BASE_URL+ApiPath.SEARCH)
                 .build();
         return okHttpClient.newCall(request);
     }
+    //同步回调
+    public <T extends ResponseEntity>T  excute(ApiInterface apiInterface) throws IOException {
+        Response response=newApiCall(apiInterface,null).execute();
+        Class<T> clazz= (Class<T>) apiInterface.getResponseEntity();
+        return getResponseEntity(response,clazz);
+    }
+    //异步回调
+    public Call enqueue(ApiInterface apiInterface,
+                        UICallback uiCallback,String tag){
+        //构建请求
+        Call call=newApiCall(apiInterface,tag);
+        //告诉ui要转化的数据类型
+        uiCallback.setResponseType(apiInterface.getResponseEntity());
+        call.enqueue(uiCallback);
+        return call;
+    }
+    //解析实体类
+    public   <T extends ResponseEntity>T getResponseEntity(Response response,Class<T> clazz) throws IOException {
+      if (!response.isSuccessful()){
+          throw new IOException("Response code is "+response.code());
+      }
+      return mGson.fromJson(response.body().string(),clazz);
+    }
+    //构建请求
+    private Call newApiCall(ApiInterface apiInterface,String tag){
+      Request.Builder builder=new Request.Builder();
+        builder.url(BASE_URL+apiInterface.getPath());
+        if (apiInterface.getRequestParam()!=null){
+           String json=new Gson().toJson(apiInterface.getRequestParam());
+            RequestBody requestBody=new FormBody.Builder()
+                    .add("json",json)
+                    .build();
+            builder.post(requestBody);
+
+        }
+        builder.tag(tag);
+        Request request=builder.build();
+        return okHttpClient.newCall(request);
+    }
+    //取消请求
+    public void cancelByTag(String tag){
+        for (Call call:okHttpClient.dispatcher().queuedCalls()){
+            if (call.request().tag().equals(tag)){
+                call.cancel();
+            }
+
+        }
+        for (Call call:okHttpClient.dispatcher().runningCalls()){
+            if (call.request().tag().equals(tag)){
+                call.cancel();
+            }
+        }
+
+    }
+
 }

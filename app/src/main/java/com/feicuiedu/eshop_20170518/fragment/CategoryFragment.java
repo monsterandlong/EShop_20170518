@@ -1,6 +1,6 @@
 package com.feicuiedu.eshop_20170518.fragment;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -8,25 +8,25 @@ import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.feicuiedu.eshop_20170518.R;
 import com.feicuiedu.eshop_20170518.base.utils.BaseFragment;
+import com.feicuiedu.eshop_20170518.base.utils.ToolbarWarp;
 import com.feicuiedu.eshop_20170518.entity.CategoryPrimary;
 import com.feicuiedu.eshop_20170518.entity.CategoryRsp;
+import com.feicuiedu.eshop_20170518.entity.Filter;
+import com.feicuiedu.eshop_20170518.fragment.Api.ApiCategory;
 import com.feicuiedu.eshop_20170518.fragment.adapter.CategoryAdapter;
 import com.feicuiedu.eshop_20170518.fragment.adapter.ChildrenAdapter;
 import com.feicuiedu.eshop_20170518.manger.InIntent;
-import com.feicuiedu.eshop_20170518.manger.UICallback;
-import com.google.gson.Gson;
+import com.feicuiedu.eshop_20170518.manger.SearshGoodsActivity;
+import com.feicuiedu.eshop_20170518.manger.base.ResponseEntity;
+import com.feicuiedu.eshop_20170518.manger.base.UICallback;
 
-import java.io.IOException;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnItemClick;
-import okhttp3.Call;
-import okhttp3.Response;
 
 /**
  * Created by 张志龙 on 2017/5/23.
@@ -45,11 +45,10 @@ public class CategoryFragment extends BaseFragment {
     private CategoryAdapter mCategoryAdapter;
     private ChildrenAdapter mChildrenAdapter;
 
-
+    //单列
     public static CategoryFragment newInstance() {
         return new CategoryFragment();
     }
-
 
     @Override
     protected int getlayoutid() {
@@ -66,25 +65,20 @@ public class CategoryFragment extends BaseFragment {
             unDataCategory();
         }else {
             //call是想网络发送请求
-            Call call= InIntent.getInstance().getCategory();
-            call.enqueue(new UICallback() {
+            UICallback uiCallback = new UICallback() {
                 @Override
-                public void onFailureInUI(Call call, IOException e) {
-                    Toast.makeText(getContext(), "请求失败", Toast.LENGTH_SHORT).show();
+                protected void onBusinessResponse(boolean isSuccess, ResponseEntity responseEntity) {
+                    if (isSuccess){
+                        // 拿到具体的数据
+                        CategoryRsp categoryRsp = (CategoryRsp) responseEntity;
+                        mData = categoryRsp.getData();
+                        // 数据有了之后更新UI：拿到的Data是一级分类的信息，一级分类里面又包括二级分类
+                        // 数据先给一级分类，默认选择一级分类的第一条，二级分类数据才能展示。
+                        unDataCategory();
+                    }
                 }
-
-                @Override
-                public void onResponseInUI(Call call, Response response) throws IOException {
-                 if (response.isSuccessful()){
-                     //Gson解析字符串，字符串为response.body().string()
-                     CategoryRsp categoryRsp = new Gson().fromJson(response.body().string(), CategoryRsp.class);
-                     if (categoryRsp.getStatus().isSuccees()){
-                         mData=categoryRsp.getData();
-                         unDataCategory();
-                     }
-                 }
-                }
-            });
+            };
+           InIntent.getInstance().enqueue(new ApiCategory(),uiCallback,getClass().getSimpleName());
         }
 
     }
@@ -106,23 +100,15 @@ public class CategoryFragment extends BaseFragment {
                 chooseCategory(position);
                 break;
             case R.id.list_children:
-                Toast.makeText(getContext(), mChildrenAdapter.getItem(position).getName(), Toast.LENGTH_SHORT).show();
+                int id = mChildrenAdapter.getItem(position).getId();
+                navigateToSearch(id);
                 break;
         }
 
     }
 
     private void initToolbar() {
-        //展示Toolbar
-        setHasOptionsMenu(true);
-        //将Toolbar当作actionbar
-        AppCompatActivity activity= (AppCompatActivity) getActivity();
-        activity.setSupportActionBar(mToolbar);
-        //取消默认的标题
-        activity.getSupportActionBar().setDisplayShowTitleEnabled(false);
-        //设置是否显示箭头
-        activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        mTvTitle.setText(R.string.category_title);
+        new ToolbarWarp(this).setShowBack(false).setShowTitle(true);
     }
     //设置搜索图标
 
@@ -140,9 +126,18 @@ public class CategoryFragment extends BaseFragment {
             return true;
         }
         if (itemId==R.id.menu_search){
-            Toast.makeText(getContext(), "OK", Toast.LENGTH_SHORT).show();
+            int postion=mListCate.getCheckedItemPosition();
+            int catetoryId=mCategoryAdapter.getItem(postion).getId();
+            navigateToSearch(catetoryId);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+    public void navigateToSearch(int categoryId){
+        Filter filter=new Filter();
+        filter.setCategoryId(categoryId);
+        Intent intent= SearshGoodsActivity.getStartIntent(getContext(),filter);
+        getActivity().startActivity(intent);
     }
 }

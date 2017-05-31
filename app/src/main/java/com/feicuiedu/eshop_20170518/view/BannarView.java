@@ -43,10 +43,12 @@ public class BannarView extends RelativeLayout {
 
     public BannarView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        init(context);
     }
 
     public BannarView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        init(context);
     }
 
     private void init(Context context) {
