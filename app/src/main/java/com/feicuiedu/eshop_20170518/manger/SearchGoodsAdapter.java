@@ -48,7 +48,7 @@ public class SearchGoodsAdapter extends BaseListAdapter<SimpleGoods, SearchGoods
         public void buid(int Position) {
             SimpleGoods simpleGoods=getItem(Position);
             mtVGoodsName.setText(simpleGoods.getName());
-            mTvGoodsPrice.setText(simpleGoods.getBrief());
+            mTvGoodsPrice.setText(simpleGoods.getShopPrice());
             // 设置商场的价格：原有的字符串加了一个删除线,采用字符串的一个处理类:SpannableString
             String marketPrice = simpleGoods.getMarketPrice();
             SpannableString spannableString=new SpannableString(marketPrice);

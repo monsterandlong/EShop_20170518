@@ -158,6 +158,8 @@ public class SearshGoodsActivity extends BaseActivity {
         for (TextView textView : mTVList) {
             textView.setActivated(false);
         }
+        // 选择的某项设置为Activited
+        view.setActivated(true);
         String sortBy;
         switch (view.getId()) {
             case R.id.text_is_hot:

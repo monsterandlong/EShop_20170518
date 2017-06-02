@@ -19,6 +19,7 @@ import com.feicuiedu.eshop_20170518.entity.GoodsInfoRsp;
 import com.feicuiedu.eshop_20170518.fragment.Api.ApiGoodsInfo;
 import com.feicuiedu.eshop_20170518.manger.base.ResponseEntity;
 import com.feicuiedu.eshop_20170518.manger.base.UICallback;
+import com.feicuiedu.eshop_20170518.view.GoodsPopupWindow;
 
 import java.util.List;
 
@@ -36,6 +37,8 @@ public class GoodsActivity extends BaseActivity implements ViewPager.OnPageChang
     @BindViews({R.id.text_tab_goods,R.id.text_tab_details,R.id.text_tab_comments})
     List<TextView> mTvTabList;
     private static final String EXTRA_GOODS_ID = "goodsId";
+    private GoodsInfo goodsInfo;
+    private GoodsPopupWindow mGoodsPopupWindow;
 
 
     public static Intent getStarIntent(Context context,int Id){
@@ -55,12 +58,15 @@ public class GoodsActivity extends BaseActivity implements ViewPager.OnPageChang
 
     }
     protected UICallback mGoosCallback=new UICallback() {
+
+
+
         @Override
         protected void onBusinessResponse(boolean isSuccess, ResponseEntity responseEntity) {
           if (isSuccess){
               GoodsInfoRsp goodsInfoRsp= (GoodsInfoRsp) responseEntity;
-              GoodsInfo goodsInfo=goodsInfoRsp.getData();
-              mGoodsPager.setAdapter(new GoodsInfoAdapter(getSupportFragmentManager(),goodsInfo));
+              goodsInfo = goodsInfoRsp.getData();
+              mGoodsPager.setAdapter(new GoodsInfoAdapter(getSupportFragmentManager(), goodsInfo));
               chooseTab(0);
           }
         }
@@ -87,11 +93,29 @@ public class GoodsActivity extends BaseActivity implements ViewPager.OnPageChang
     public void onClick(View view){
         switch (view.getId()){
             case R.id.button_add_cart:
+                showGoodsPopupWindow();
                 break;
             case R.id.button_buy:
+                showGoodsPopupWindow();
                 break;
 
         }
+
+    }
+    // 展示商品选择的弹窗
+    private void showGoodsPopupWindow(){
+        if (goodsInfo==null)return;
+        if (mGoodsPopupWindow==null){
+            mGoodsPopupWindow = new GoodsPopupWindow(this,goodsInfo);
+        }
+        mGoodsPopupWindow.show(new GoodsPopupWindow.OnConfirmListener() {
+            @Override
+            public void onConfirm(int number) {
+                // 具体操作
+                ToastWarp.show("Confirm:"+number);
+                mGoodsPopupWindow.dismiss();
+            }
+        });
 
     }
     // 填充选项菜单
@@ -130,5 +154,9 @@ public class GoodsActivity extends BaseActivity implements ViewPager.OnPageChang
     @Override
     public void onPageScrollStateChanged(int state) {
 
+    }
+    public void selectPage(int position){
+          mGoodsPager.setCurrentItem(position,true);
+        chooseTab(position);
     }
 }

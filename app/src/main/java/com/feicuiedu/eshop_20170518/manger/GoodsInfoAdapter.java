@@ -5,6 +5,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import com.feicuiedu.eshop_20170518.entity.GoodsInfo;
+import com.feicuiedu.eshop_20170518.fragment.GoodsInfoFragment;
 import com.feicuiedu.eshop_20170518.fragment.TestFragment;
 
 /**
@@ -23,7 +24,7 @@ public class GoodsInfoAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         switch (position){
             case 0:
-                return TestFragment.newInstance(goodsInfo.getName());
+                return GoodsInfoFragment.newInstance(goodsInfo);
             case 1:
                 return TestFragment.newInstance("商品详情");
             case 2:
